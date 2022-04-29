@@ -9,7 +9,7 @@ from numpy import arange
 
 import angularDistance
 
-def angle_to_grb(ra,dec,trigdat_file):
+def angle_to_grb(ra, dec, trigdat_file, verbose = False):
     #Co-ordinates of the object
     ra_obj =  ra #171.166#in degrees
     dec_obj =  dec #49.45 #in degrees
@@ -37,9 +37,9 @@ def angle_to_grb(ra,dec,trigdat_file):
                                                               d)
         angls[round(angle)]=d
         val_ang.append(round(angle))
-        print(d,round(angle))
+        if verbose:
+            print(d,round(angle))
     brightest_det = angls[np.min(val_ang)] 
-    #print('The brightest NaI detector is',angls[np.min(val_ang)])
 
     #Sorting the dictionary to select only NaI and BGO detectors into separate dictionaries
     dict_nai={}
@@ -59,13 +59,11 @@ def angle_to_grb(ra,dec,trigdat_file):
     #Get all the keys of the sorted NaI and BGO dictionaries
     res_nai = list(angls_nai.keys())
     res_bgo = list(angls_bgo.keys())
-    print('The brightest NaI detector is',angls_nai[res_nai[0]],'- Source angle is:',res_nai[0],'deg')
-    print('The brightest 3 NaI detectors are',angls_nai[res_nai[0]],'(',res_nai[0],'deg)',angls_nai[res_nai[1]],'(',res_nai[1],'deg)',angls_nai[res_nai[2]],'(',res_nai[2],'deg)')
-    print('The brightest BGO detector is',angls_bgo[res_bgo[0]],'(',res_bgo[0],'deg )')
-
+    if verbose:
+        print('The brightest NaI detector is',angls_nai[res_nai[0]],'- Source angle is:',res_nai[0],'deg')
+        print('The brightest 3 NaI detectors are',angls_nai[res_nai[0]],'(',res_nai[0],'deg)',angls_nai[res_nai[1]],'(',res_nai[1],'deg)',angls_nai[res_nai[2]],'(',res_nai[2],'deg)')
+        print('The brightest BGO detector is',angls_bgo[res_bgo[0]],'(',res_bgo[0],'deg )')
     brightest_nai = angls_nai[res_nai[0]]
     bright_nais = [angls_nai[res_nai[0]],angls_nai[res_nai[1]],angls_nai[res_nai[2]]]
     brightest_bgo = [angls_bgo[res_bgo[0]]]
     return(brightest_nai,bright_nais,brightest_bgo)
-
-
