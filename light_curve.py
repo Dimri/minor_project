@@ -36,7 +36,7 @@ def get_t90(grbname):
 # function to calculate binsize
 binsize = lambda t90 : 1 if t90 >= 2 else 0.1
 
-def getLightCurve(grb, size = 0):
+def getLightCurve(grb, size = 0, show = True):
     '''
     function to plot histogram and get the photon counts/ light curve
     from the raw fitfile
@@ -57,7 +57,8 @@ def getLightCurve(grb, size = 0):
     N = plt.hist(df.TTIME, bins=int((end - start)/size), range=(start,end),
                  alpha=0.5, label=grbname)
     plt.legend(loc='upper right')
-    plt.close()
+    if !show:
+        plt.close()
     return N[0]
 
 def getDTW(reference, target, ref_name, tar_name, show_plot = False):
