@@ -57,7 +57,7 @@ def getLightCurve(grb, size = 0, show = True):
     N = plt.hist(df.TTIME, bins=int((end - start)/size), range=(start,end),
                  alpha=0.5, label=grbname)
     plt.legend(loc='upper right')
-    if !show:
+    if not show:
         plt.close()
     return N[0]
 
@@ -79,12 +79,16 @@ def getDTW(reference, target, ref_name, tar_name, show_plot = False):
 
     # visualizing the plot
     if show_plot:
+        plt.figure(figsize=(10,10))
         plt.imshow(acc_cost_matrix.T, origin='lower', cmap='gray', interpolation='nearest')
+        plt.colorbar(shrink=0.35)
         plt.plot(path[0], path[1], 'w')
         # t90 values
         t90_1 = get_t90(ref_name)
         t90_2 = get_t90(tar_name)
         print(t90_1, t90_2)
+        plt.xlabel('Reference Light Curve', fontsize=14)
+        plt.ylabel('Target Light Curve', fontsize=14)
         plt.axvline(t90_1, color='r')
         plt.axhline(t90_2, color='b')
         plt.show()
