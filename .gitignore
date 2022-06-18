@@ -1,4 +1,11 @@
+#Jupyter Notebook Junk
 .ipynb_checkpoints
 __pycache__
+
+#OS Junk
 .DS_Store
+
+#Other files
 test.ipynb
+dtw_distance-Copy1.ipynb
+data/distance_dat_file-Copy1.csv

@@ -29,14 +29,14 @@ def get_t90(grbname):
     grbname = name of the grb 
     '''
     lcdf = pd.read_csv('data/gbmdatacleaned.csv', index_col = 0)
-    result = lcdf.loc[lcdf.name == grbname] # find the row with name = grbname
+    result = lcdf.loc[lcdf['name'] == grbname] # find the row with name = grbname
     t90 = result.t90 # this is an object
     return float(t90.iloc[0].strip()) # strip to remove the trailing whitespaces
 
 # function to calculate binsize
 binsize = lambda t90 : 1 if t90 >= 2 else 0.1
 
-def getLightCurve(grb, size = 0, show = True):
+def getLightCurve(grb, grbname, size = 0, show = False):
     '''
     function to plot histogram and get the photon counts/ light curve
     from the raw fitfile
@@ -46,7 +46,6 @@ def getLightCurve(grb, size = 0, show = True):
     # create the dataframe with time and ttime
     df = dfFromFitFile(grb)
     # get t90
-    grbname = grb[0].header['OBJECT']
     t90 = get_t90(grbname)
     # start, end 
     start, end = -10, t90 + 10
@@ -54,11 +53,15 @@ def getLightCurve(grb, size = 0, show = True):
     if size == 0:
         size = binsize(t90)
     # plot hist and get count value
+    if show:
+        plt.show()
+    else:
+        plt.close()
+        
     N = plt.hist(df.TTIME, bins=int((end - start)/size), range=(start,end),
                  alpha=0.5, label=grbname)
     plt.legend(loc='upper right')
-    if not show:
-        plt.close()
+
     return N[0]
 
 def getDTW(reference, target, ref_name, tar_name, show_plot = False):
