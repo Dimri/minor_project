@@ -35,7 +35,8 @@ def angle_to_grb(ra, dec, trigdat_file, verbose = False):
     for d in det:
         angle = angularDistance.getDetectorAngle(ra_scx, dec_scx, ra_scz, dec_scz, ra_obj, dec_obj,
                                                               d)
-        angls[round(angle)]=d
+        # print(f'Angle : {angle}')
+        angls[round(angle)] = d
         val_ang.append(round(angle))
         if verbose:
             print(d,round(angle))
@@ -59,10 +60,14 @@ def angle_to_grb(ra, dec, trigdat_file, verbose = False):
     #Get all the keys of the sorted NaI and BGO dictionaries
     res_nai = list(angls_nai.keys())
     res_bgo = list(angls_bgo.keys())
+    
+
     if verbose:
         print('The brightest NaI detector is',angls_nai[res_nai[0]],'- Source angle is:',res_nai[0],'deg')
         print('The brightest 3 NaI detectors are',angls_nai[res_nai[0]],'(',res_nai[0],'deg)',angls_nai[res_nai[1]],'(',res_nai[1],'deg)',angls_nai[res_nai[2]],'(',res_nai[2],'deg)')
         print('The brightest BGO detector is',angls_bgo[res_bgo[0]],'(',res_bgo[0],'deg )')
+        
+        
     brightest_nai = angls_nai[res_nai[0]]
     bright_nais = [angls_nai[res_nai[0]],angls_nai[res_nai[1]],angls_nai[res_nai[2]]]
     brightest_bgo = [angls_bgo[res_bgo[0]]]

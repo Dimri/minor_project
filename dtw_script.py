@@ -11,6 +11,7 @@ import pickle
 import light_curve as lc
 import estimate_source_angles_detectors as esad
 
+
 def simulate(fitfile, grbname, num, size = 0):
     '''
     function to simulate light curves with poisson distribution
@@ -20,7 +21,7 @@ def simulate(fitfile, grbname, num, size = 0):
     returns simulated curves
     '''
     reference = lc.getLightCurve(fitfile, grbname, size)
-    simcurves = [] # for simulated curves
+    simcurves = []  # for simulated curves
     for i in range(num):
         curve = []
         for n in reference:
@@ -28,20 +29,21 @@ def simulate(fitfile, grbname, num, size = 0):
         simcurves.append(curve)
     return simcurves
 
+
 def brightest_detectors(ra, dec, grbnumbers):
     '''
     function to find the name of the brightest NaI detector for a particular GRB
-    ra = ra values 
-    dec = dec values
-    grbnumbers = numbers of grbs
+    ra = list of ra values 
+    dec = list of dec values
+    grbnumbers = list of numbers of grbs
     returns list of brightest detectors
     '''
-    detectors = [] # brightest detector name
-    for i in range(len(grbnumbers)):
-        dig = 0 # suffix digit _v00 or _v01 or v_02 ...
+    detectors = []  # brightest detector name
+    for i, number in enumerate(grbnumbers):
+        dig = 0  # suffix digit _v00 or _v01 or v_02 ...
         path = ''
         while not os.path.exists(path):
-            path = '/Users/dimrisudhanshu/Downloads/current/glg_trigdat_all_bn' + grbnumbers[i] + '_v0' + str(dig) + '.fit'
+            path = 'C:/Users/hhsud/Downloads/GRBS/glg_trigdat_all_bn' + number + '_v0' + str(dig) + '.fit'
             dig += 1
             if dig > 100:
                 raise FileNotFoundError
@@ -50,23 +52,44 @@ def brightest_detectors(ra, dec, grbnumbers):
     
     return detectors
 
+
 def _round(x):
     '''
     function to round all elements of a list to 2 digits
     '''
     return [round(a,2) for a in x]
 
+
+def find_mean_std(simulated_curves, referenceLC):
+    '''
+    function to find mean and sigma of DTW distribution given simulated curves
+    and reference light curve.
+    '''
+    distances = []
+    for curve in simulated_curves:
+        distances.append(lc.getDTW(referenceLC, curve))
+
+    #find distribution of dtw distances of simulated light curves
+    # plt.hist(distances, density=True, color='g')
+    # xmin, xmax = plt.xlim()
+    # x = np.linspace(xmin, xmax, 100)
+    # p = norm.pdf(x, mu, std)
+    # plt.plot(x, p, 'k', linewidth=2)
+    
+    return norm.fit(distances)  # returns mean and stddev
+
+
 def distance_data(nbd_info):
     '''
     function to take nbd array and append all related info to a dataframe
     nbd_info = neighborhood array with a center grb index and a list of nbd grbs
     '''
-    start_time = time.time()
+    start_time = time.perf_counter()
     #-----get the ra and dec values of grbs to compare-----
-    lcdf = pd.read_csv('data/gbmdatacleaned.csv', index_col=0) # light curve data frame
+    lcdf = pd.read_csv('data/gbmdatacleaned.csv', index_col=0)  # light curve data frame
 
-    grb_index = nbd_info[1].copy() # copy neighborhood indices list
-    grb_index.insert(0, nbd_info[0]) # insert the center index at 0th pos
+    grb_index = nbd_info[1].copy()  # copy neighborhood indices list
+    grb_index.insert(0, nbd_info[0])  # insert the center index at 0th pos
 
     # ra-dec, name of selected grbs
     ra = [] 
@@ -88,14 +111,15 @@ def distance_data(nbd_info):
     
     #-----open the fits file corresponding to the brightest NaI detectors-----
     fitfiles = []
-    for i in range(len(grb_index)):
+    for detector, number in zip(detectors, grbnumbers):
         # try suffix _v01 or _v00
         dig = 0
         path = ''
         while not os.path.exists(path):
-            path = '/Users/dimrisudhanshu/Downloads/current/glg_tte_' + detectors[i] + '_bn' + grbnumbers[i] + '_v0' + str(dig) + '.fit'
+            path = 'C:/Users/hhsud/Downloads/GRBS/glg_tte_' + detector + '_bn' + number + '_v0' + str(dig) + '.fit'
             dig += 1
             if dig > 100:
+                print(path)
                 raise FileNotFoundError
         
         fitfile = fits.open(path)
@@ -112,28 +136,24 @@ def distance_data(nbd_info):
 
 
     #-----simulate the light curves-----
-
-    simulated_curves = simulate(fitfiles[0], ref_name, 100)
-    dtw_list = []
-    for cnt, curve in enumerate(simulated_curves):
-        d = lc.getDTW(referenceLC, curve, '', '')
-        dtw_list.append(d)
-
-    #-----find distribution of dtw distances of simulated light curves-----
-    # mean and standard deviation of simulated dtw distance
-    mu, std = norm.fit(dtw_list)
-
-    # plot hist + normal distribution
-    # plt.hist(dtw_list, density=True, color='g')
-    # xmin, xmax = plt.xlim()
-    # x = np.linspace(xmin, xmax, 100)
-    # p = norm.pdf(x, mu, std)
-    # plt.plot(x, p, 'k', linewidth=2)
+    simulated_curves_big = simulate(fitfiles[0], ref_name, 100)  # simulation with binsize 1
+    mu_big, sigma_big = find_mean_std(simulated_curves_big, referenceLC)
+    
+    if 0.1 in grbbinsize:
+        simulated_curves_small = simulate(fitfiles[0], ref_name, 100, 0.1)
+        mu_small, sigma_small = find_mean_std(simulated_curves_small, referenceLC)
+        # print(f'mu : {mu_small}, sigma : {sigma_small}')
 
     # number of stdev away from mean
     stddev = []
-    for d in distance_list:
-        stddev.append(round((abs(mu - d))/std, 3))
+    for size, d in zip(grbbinsize, distance_list):
+        # if binsize is 0.1
+        if size == 0.1:
+            delta = round((d - mu_small)/sigma_small,3)
+        else:
+            delta = round((d - mu_big)/sigma_big,3)
+        stddev.append(abs(delta))
+            
     stddev[0] = None # sigma value for ref grb compared to itself
     
     isref = [1] + [0] * (len(grbnames) - 1) # boolean array ; 1 if GRB is a reference GRB
@@ -147,7 +167,9 @@ def distance_data(nbd_info):
     new_datadf = pd.concat([datadf1, datadf]).reset_index(drop=True)
     # save new dataframe
     new_datadf.to_csv('data/distance_dat_file.csv', index=False)
-    end_time = time.time()
-    print(f'Total time = {end_time - start_time}')
+    end_time = time.perf_counter()
+    delta_time = end_time - start_time
+    print(f'Time = {delta_time}')
+    return delta_time
 
 

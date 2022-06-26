@@ -64,7 +64,7 @@ def getLightCurve(grb, grbname, size = 0, show = False):
 
     return N[0]
 
-def getDTW(reference, target, ref_name, tar_name, show_plot = False):
+def getDTW(reference, target, ref_name='', tar_name='', show_plot = False):
     '''
     function to calculate DTW distance between reference and target
     light curve
