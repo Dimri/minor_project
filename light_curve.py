@@ -3,9 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dtw import dtw
 
-def dfFromFitFile(fitfile):
+def df_from_fit_file(fitfile):
     '''
     function to get a DataFrame from a raw fitfile
+
+        params : fitfile = raw .fit file
+        returns : pandas Dataframe with cols = ['TIME', 'PHA', 'TTIME']
     '''
     # convert the EVENTS header into a dataframe
     timedf = pd.DataFrame(fitfile[2].data)
@@ -24,55 +27,64 @@ def dfFromFitFile(fitfile):
 
 def get_t90(grbname):
     '''
-    function to get the t90 value of a given grb from the cleaned 
-    gbm dataset
-    grbname = name of the grb 
+    Function to get the t90 value of a given grb from the cleaned gbm dataset
+        
+        params : grbname = name of the grb 
+        returns : t90 of given grb
     '''
     lcdf = pd.read_csv('data/gbmdatacleaned.csv', index_col = 0)
     result = lcdf.loc[lcdf['name'] == grbname] # find the row with name = grbname
     t90 = result.t90 # this is an object
     return float(t90.iloc[0].strip()) # strip to remove the trailing whitespaces
 
-# function to calculate binsize
-binsize = lambda t90 : 1 if t90 >= 2 else 0.1
+def binsize(t90):
+        '''
+        Function to return binsize according to T90
+            params : t90 of grb
+            returns : 0.1 if t90 < 2 else 1
+        '''
+        if t90 >= 2:
+            return 1
+        else:
+            return 0.1
 
-def getLightCurve(grb, grbname, size = 0, show = False):
+
+def get_light_curve(grb, grbname, size = 0, show = False):
     '''
     function to plot histogram and get the photon counts/ light curve
     from the raw fitfile
     grb = fitfile of the GRB
     size = binsize ; default = 0 -> calculate binsize according to t90
     '''
+
     # create the dataframe with time and ttime
-    df = dfFromFitFile(grb)
+    df = df_from_fit_file(grb)
+
     # get t90
     t90 = get_t90(grbname)
+
     # start, end 
     start, end = -10, t90 + 10
+
     # binsize
     if size == 0:
         size = binsize(t90)
-    # plot hist and get count value
-    if show:
-        plt.show()
-    else:
-        plt.close()
         
-    N = plt.hist(df.TTIME, bins=int((end - start)/size), range=(start,end),
-                 alpha=0.5, label=grbname)
-    plt.legend(loc='upper right')
+    # get count value in bins 
+    N = np.histogram(df.TTIME, bins=int((end - start)/size), range=(start,end))
 
     return N[0]
 
-def getDTW(reference, target, ref_name='', tar_name='', show_plot = False):
+def get_dtw_distance(reference, target, ref_name='', tar_name='', show_plot = False):
     '''
     function to calculate DTW distance between reference and target
     light curve
-    reference = reference light curve
-    target = target light curve
-    ref_name = GRB name of referene LC
-    tar_name = GRB name of target LC
-    show_plot = shows DTW plot 
+        params : reference = reference light curve, list[int]
+        params : target = target light curve, list[int]
+        params : ref_name = GRB name of referene LC, str
+        params : tar_name = GRB name of target LC, str
+        params : show_plot = shows DTW plot 
+        returns : DTW distance between reference and target GRB
     '''
     # distance metric
     manhattan_distance = lambda x, y : np.abs(x-y)
