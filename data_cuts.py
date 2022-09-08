@@ -1,5 +1,5 @@
 import pandas as pd
-import pickle
+import json
 
 # read dataframe
 df = pd.read_csv('data/gbmdatacleaned.csv', index_col = 0)
@@ -8,7 +8,7 @@ df = pd.read_csv('data/gbmdatacleaned.csv', index_col = 0)
 RADIUS = 10
 
 
-def nearbyGRB(n, ra_val, dec_val):
+def nearbyGRB(n):
     '''
     find nearbyGRB in a 'RADIUS' degree radius
         params : n = index (center of circle)
@@ -16,24 +16,29 @@ def nearbyGRB(n, ra_val, dec_val):
         returns : list of grbs inside 'R' degree radius
     '''
     nbd = []
-    ra = ra_val[n]
-    dec = dec_val[n]
-    for i in range(n+1, len(ra_val)):
-        if ra_val[i] == ra or dec_val[i] == dec:
-            continue
-        if((ra_val[i] - ra)**2 + (dec_val[i] - dec)**2 <= RADIUS**2):
+    ra = df.ra_val.iloc[n]
+    dec = df.dec_val.iloc[n]
+    for i in range(n+1, df.ra_val.shape[0]):
+        if((df.ra_val.iloc[i] - ra)**2 + (df.dec_val.iloc[i] - dec)**2 <= RADIUS**2):
             nbd.append(i)
     return nbd
 
 
-# array to store (center_index, [neighbouring indices])
-nbd = []
-for i in range(len(df['ra_val'])):
-    ls = nearbyGRB(i, df['ra_val'], df['dec_val'])
+# Dictionary for GRBs --> center_index : [neighbouring indices]
+
+import time 
+
+s = time.perf_counter()
+nbd = dict()
+for i in range(df.ra_val.shape[0]):
+    nbr_idx = nearbyGRB(i)
     # if ls is not empty
-    if ls:
-        nbd.append((i,ls))
+    if nbr_idx:
+        nbd[i] = nbr_idx
+e = time.perf_counter()
+
+print(f'{e-s}')
 
 # pickling nbd array
-with open('data/nbd_array', 'wb') as f:
-    pickle.dump(nbd, f)
+with open('data/nbd.json', 'w') as f:
+    json.dump(nbd, f)

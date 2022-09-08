@@ -1,13 +1,6 @@
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import math
-from astropy.io import ascii
-from astropy.table import Table
 from astropy.io import fits
-from numpy import arange
-
-import angularDistance
+from detector import angularDistance
 
 def angle_to_grb(ra, dec, trigdat_file, verbose = False):
     #Co-ordinates of the object
