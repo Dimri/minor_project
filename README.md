@@ -1,2 +1,3 @@
-# minor_project
-Repository for minor project. Title : Searching for gravitationally lensed Gamma Ray Bursts in the Fermi GBM catalog
+# Searching for gravitationally lensed GRB in the Fermi GBM catalog
+<br> 
+Repository for minor project.
