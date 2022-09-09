@@ -27,3 +27,4 @@ for key, value in nbd.items():
     newdf = pd.read_csv('data/new_distance_file.csv')
     newdf = pd.concat([newdf, df])
     newdf.to_csv('data/new_distance_file.csv', index=False)
+
